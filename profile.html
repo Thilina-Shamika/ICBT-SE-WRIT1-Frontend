@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABC Restaurant - User Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .navbar-custom {
+            background-color: #6a1b9a;
+        }
+        .navbar-custom .navbar-brand,
+        .navbar-custom .nav-link {
+            color: white;
+        }
+        .hero-section {
+            background-image: url('images/hero1.jpg');
+            background-size: cover;
+            background-position: center;
+            height: 300px;
+            display: flex;
+            align-items: center;
+        }
+        .hero-content {
+            background-color: rgba(106, 27, 154, 0.7);
+            padding: 20px;
+            color: white;
+        }
+        .footer {
+            background-color: #6a1b9a;
+            color: white;
+            padding: 20px 0;
+        }
+        .active-nav-link {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">ABC Restaurant</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="foods.html">Foods</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="booknow.html">Reservations</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="inquiry.html">Inquiry</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active-nav-link" href="profile.html">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="cart.html">Cart (<span id="cart-count">0</span>)</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="hero-section">
+        <div class="container">
+            <div class="hero-content">
+                <h1>User Profile</h1>
+                <p>Manage your ABC Restaurant account and view your order history</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Your Profile</h3>
+                <form id="profileForm">
+                    <input type="hidden" id="userId">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone</label>
+                        <input type="tel" class="form-control" id="phone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">New Password (leave blank to keep current)</label>
+                        <input type="password" class="form-control" id="password">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h3>Order History</h3>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orderHistoryBody">
+                            <!-- Order history will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer mt-5">
+        <div class="container">
+            <p>&copy; 2024 ABC Restaurant. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8080/api';
+
+        // Fetch user profile
+        async function fetchUserProfile() {
+            try {
+                // In a real application, you'd get the user ID from the session or local storage
+                const userId = 1; // Replace with actual user ID
+                const response = await fetch(`${API_BASE_URL}/user/${userId}`);
+                if (!response.ok) throw new Error('Failed to fetch user profile');
+                const user = await response.json();
+                document.getElementById('userId').value = user.id;
+                document.getElementById('name').value = user.name;
+                document.getElementById('email').value = user.email;
+                document.getElementById('phone').value = user.phone;
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+                alert('Failed to load user profile. Please try again.');
+            }
+        }
+
+        // Update user profile
+        const profileForm = document.getElementById('profileForm');
+        profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('userId').value;
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+
+            const userData = { name, email, phone };
+            if (password) userData.password = password;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/user/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                if (!response.ok) throw new Error('Failed to update profile');
+                alert('Profile updated successfully!');
+                document.getElementById('password').value = '';
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Failed to update profile. Please try again.');
+            }
+        });
+
+        // Fetch order history
+        async function fetchOrderHistory() {
+            try {
+                const userId = document.getElementById('userId').value;
+                // Assuming there's an endpoint for fetching user's order history
+                const response = await fetch(`${API_BASE_URL}/orders/user/${userId}`);
+                if (!response.ok) throw new Error('Failed to fetch order history');
+                const orders = await response.json();
+                const orderHistoryBody = document.getElementById('orderHistoryBody');
+                orderHistoryBody.innerHTML = '';
+                orders.forEach(order => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${order.id}</td>
+                        <td>${new Date(order.date).toLocaleDateString()}</td>
+                        <td>$${order.total.toFixed(2)}</td>
+                        <td>${order.status}</td>
+                    `;
+                    orderHistoryBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching order history:', error);
+                document.getElementById('orderHistoryBody').innerHTML = '<tr><td colspan="4">Failed to load order history. Please try again later.</td></tr>';
+            }
+        }
+
+        // Load user profile and order history on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchUserProfile();
+            await fetchOrderHistory();
+        });
+    </script>
+</body>
+</html>
